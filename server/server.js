@@ -1,34 +1,49 @@
-import express from "express";
-import { connectDb } from "./config/dbConnection.js"; // Ensure this path is correct
-// import errorHandler from "./middleware/errorHandler.js"; // Ensure this path is correct
-import cors from "cors";
-// import dotenv from "dotenv";
+// const express = require('express');
+// const app = express();
 
-// Initialize dotenv for environment variables
-// dotenv.config();
+// // Define the port
+// const PORT = 3000;
 
-// Create an Express application
-const app = express();
+// // Create a basic route
+// app.get('/', (req, res) => {
+//   res.send('Hello, Express!');
+// });
 
-// Define the port
-const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(express.json());
-app.use(cors());
 
-// Basic route
-app.get("/", (req, res) => {
-    res.send("Hello World");
-});
 
-// // Error handling middleware
-// app.use(errorHandler);
+// FRAMEWORK CONFIGURATION
+import express from 'express';
+import dotenv from 'dotenv';
+import connectDb from './config/dbConnection.js';
+import errorHandler from './middleware/errorHandler.js';
+import cors from 'cors';
 
-// Connect to the database
+dotenv.config();
 connectDb();
 
-// Start the server
-app.listen(PORT, () => {
-    console.log("Server is running on port ${PORT}");
+const app = express();
+const port = process.env.PORT || 5000;
+
+app.use(express.json());
+app.use(cors());
+app.set('view engine', 'hbs');
+
+app.get('/home', (req, res) => {
+  res.render('home', { username: 'Krishna' });
+});
+
+app.get('/users', (req, res) => {
+  res.render('users', {
+    people: [
+      { username: 'Krishna', age: 20 },
+      { username: 'Lakshay', age: 21 },
+    ],
+  });
+});
+
+app.use(errorHandler);
+
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}/`);
 });
