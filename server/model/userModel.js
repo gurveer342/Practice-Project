@@ -1,48 +1,40 @@
-const mongoose=require("mongoose")
+const mongoose = require("mongoose");
 
-const userSchema=mongoose.Schema(
-
-    {
-        email:{
-            type:String,
-            require:[true,"please add your email"]
-        },
-        firstname:{
-            type:String,
-            require:[true,"please add your name"]
-        },
-        lastname:{
-            type:String,
-            require:[true,"please add your lastname"]
-        },
-        age:{
-            type:Number,
-            require:[true,"please add your age"]
-        },
-        bloodgroup:{
-            type:String,
-            require:[true,"please add your bloodgroup"]
-        },
-        gender:{
-            type:String,
-            require:[true,"please add your gender"]
-        },
-        phonenumber:{
-            type:Number,
-            require:[true,"please add your phonenumber"]
-        },
-        password:{
-            type:String,
-            require:[true,"please add your password"]
-        }
-    
-
-
+const userSchema = mongoose.Schema({
+    firstName: {
+        type: String, 
+        required: [true, "please add your name"], // Corrected 'require' to 'required'
     },
-    {
-        timestamps:true,
+    lastName: {
+        type: String, 
+        required: [true, "please add your last name"], // Corrected 'require' to 'required'
+    },
+    email: {
+        type: String, 
+        required: [true, "please add your email"], // Corrected error message
+    },
+    age: {
+        type: Number, 
+        required: [true, "please add your age"], // Corrected 'require' to 'required'
+    },
+    bloodGroup: {
+        type: String, 
+        required: [true, "please add your blood group"], // Corrected 'require' to 'required'
+    },
+    gender: {
+        type: String, 
+        required: [true, "please add your gender"], // Corrected 'require' to 'required'
+    },
+    phoneNumber: {
+        type: Number, 
+        required: [true, "please add your phone number"], // Corrected 'require' to 'required'
+    },
+    password: {
+        type: String,
+        required: [true, "please add your password"], // Corrected 'require' to 'required'
     }
+}, {
+    timestamps: true, // Automatically adds createdAt and updatedAt fields
+});
 
-)
-
-const User=mongoose.model('User',userSchema)
+module.exports = mongoose.model("User", userSchema);
