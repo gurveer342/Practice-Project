@@ -14,10 +14,12 @@ connectDb(); // Connect to the database
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-
+//donee
 // Set up Handlebars as the view engine
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -70,6 +72,8 @@ app.post('/profile', upload.single('avatar'), async (req, res) => {
         res.status(500).send("Error uploading file.");
     }
 });
+
+
 
 // Error handling middleware
 app.use(errorHandler);
