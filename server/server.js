@@ -1,84 +1,107 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const connectDb = require("./config/dbConnection");
-const errorHandler = require("./middlewares/errorHandler");
-const cors = require("cors");
-const dotenv = require("dotenv");
-const path = require("path");
+const errorHandler = require("./middleware/errorHandler");
+const cors= require("cors");
 const hbs = require("hbs");
+const path = require("path");
 const multer = require('multer');
-const File = require('./model/File'); // Import the File model
-
-dotenv.config();
-connectDb(); // Connect to the database
-
+const { GridFsStorage } = require("multer-gridfs-storage");
+// const upload = multer({ dest : 'uploads/'})
+const mongoose = require("mongoose");
+const doctorsDetails = require("./routes/doctorsDetails");
+const Profie= require("./model/Profile")
 const app = express();
-const PORT = process.env.PORT || 3000;
-//donee
-// Set up Handlebars as the view engine
-app.set('view engine', 'hbs');
-app.set('views', path.join(__dirname, 'views'));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(express.static("public"));
 
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+const users = [
+    { name: "Drishya Sood", age: 20 },
+    { name: "Rohan Dahiya", age: 19 },
+    { name: "Jashan Dhaliwal", age: 20 },
+];
+
+const port = 3000 || 5000;
+const dotenv = require("dotenv");
+ dotenv.config();
+ connectDb();
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 app.use(cors());
+app.get('/' , (req , res)=>{
+    res.send("working");
+})
+app.set('view engine' , 'hbs');
+app.set('views', path.join(__dirname, 'views'));
 
-app.get('/', (req, res) => {
-    res.send('Working');
-});
-
-// Configure Multer storage with unique filenames
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, './uploads'); // Make sure this directory exists
-    },
-    filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, file.fieldname + '-' + uniqueSuffix);
-    }
-});
-const upload = multer({ storage: storage });
-
-// Home route to render the page
-app.get("/home", async (req, res) => {
-    // Fetch all uploaded files from MongoDB
-    const files = await File.find();
-    res.render("home", {
-        username: "Jai",
-        users: [{ name: "John Doe", age: 30 }, { name: "Jane Smith", age: 25 }],
-        files: files 
+hbs.registerPartials(path.join(__dirname, 'views/partials'));
+app.get("/home",(req , res)=>{
+    res.render("home" , {
+       username:" Drishya Sood",
+       posts : " time pass"
+    })
+})
+app.get("/alluser", (req, res) => {
+    res.render("alluser", {
+        users: users, 
     });
 });
+// const storage = multer.diskStorage({
+//     destination: (req, file, cb) => {
+//         cb(null, "./uploads"); // Directory to save files
+//     },
+//     filename: (req, file, cb) => {
+//         const uniqueSuffex = Date.now() + "-" + Math.round(Math.random()*1E9);
+//         cb(null, file.filename +'-'+uniqueSuffex); 
+//     },
+// });
 
-// Route to handle file upload and save metadata in MongoDB
-app.post('/profile', upload.single('avatar'), async (req, res) => {
-    try {
-        // Create a new file record in MongoDB
-        const fileData = new File({
-            originalName: req.file.originalname,
-            filename: req.file.filename,
-            path: req.file.path,
-            size: req.file.size,
-        });
-
-        await fileData.save(); // Save metadata to MongoDB
-        console.log("File metadata saved:", fileData);
-
-        return res.redirect("/home");
-    } catch (error) {
-        console.error("Error uploading file:", error);
-        res.status(500).send("Error uploading file.");
+// Set up GridFsStorage for file storage in MongoDB
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+      cb(null, './uploads')
+    },
+    filename: function (req, file, cb) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+      cb(null, file.fieldname + '-' + uniqueSuffix)
     }
+  })
+  
+//   const upload = multer({ storage: storage })
+ const upload = multer({storage : storage});
+app.post("/profile", upload.single("avatar"), async function(req, res , next) {
+    console.log(req.body);
+    console.log(req.file);
+    // console.log(req.file.path)
+    let {title} = req.body;
+    let {path} = req.file;
+    let newProfie = new Profie({ title:title ,  image: path });
+    await newProfie.save();
+    res.render("profile", { image: path });
+    
 });
+app.get("/profile",async(req,res)=>{
+    
+    let allblog=await Profie.find();
+    console.log("chalgya oyee");
+    
+    res.render("profile",{profile : allblog});
+}) 
+// app.get("/profile", async (req, res) => {
+//     let profile = await Profie.findOne();
+//     console.log(profile)
+    
+//     if (profile) {
+//         // console.log("Image URL:"+ profile.image);  // Log the image path
+//         res.render("profile", { image: profile.image });
+//     } else {
+//         console.log("No profile found.");
+//         res.render("profile", { image: null });
+//     }
+// });
 
-
-
-// Error handling middleware
-app.use(errorHandler);
-
-// Start the server
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
+//register route
+app.use("/api/register" , require("./routes/userRoutes"));
+app.use("/api/doctors", doctorsDetails);
+app.listen(port , ()=>{
+    console.log(`server running on http://localhost:${port}`);
+})
